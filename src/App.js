@@ -3,31 +3,14 @@ import "./App.css"
 import AddPerson from "./components/AddPerson";
 import Filter from "./components/Filter";
 import PersonInfoList from "./components/PersonInfoList";
+import service from "./services/persons"
 
 const App = () => {
-    const [persons, setPersons] = useState([
-        {
-            name: 'Tommi Keinonen',
-            number: "1231-2414"
-        },
-        {
-            name: 'Matias Berglund',
-            number: "13257891"
-        },
-        {
-            name: 'Juhana Kallio',
-            number: "16543"
-        },
-        {
-            name: 'Liisa Laamanen',
-            number: "525325"
-        }
-    ])
+    const [persons, setPersons] = useState([])
     const [newName, setNewName] = useState("")
     const [newNumber, setNewNumber] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const [searchResult, setSearchResult] = useState([])
-
 
     const addName = (event) => {
         event.preventDefault();
@@ -40,11 +23,31 @@ const App = () => {
         const exists = persons.some(person => person.name === personObject.name)
         // If true, give alert. Otherwise setPersons and clear field
         if (exists) {
-            alert(`${newName} already exists in database`)
+            if (window.confirm(`${personObject.name} is already added to phonebook, replace old number with a new one?`)) {
+                const person = persons.find(n => n.name === newName)
+                service
+                    .update(person.id, {...person, number: newNumber})
+                    .then(updatePerson => {
+                        setPersons(
+                            persons.map(n => (n.name === newName ? updatePerson : n))
+                        )
+                        setSearchResult(
+                            persons.map(n => (n.name === newName ? updatePerson : n))
+                        )
+                    })
+                    .catch(() => {
+                    });
+            }
         } else {
-            setPersons(persons.concat(personObject))
-            setNewName("")
-            setNewNumber("")
+            service
+                .createNew(personObject)
+                .then(returnedPerson => {
+                    setPersons(persons.concat(returnedPerson))
+                    setSearchResult(searchResult.concat(returnedPerson))
+                    setNewName("")
+                    setNewNumber("")
+                })
+
         }
     }
 
@@ -63,6 +66,14 @@ const App = () => {
         setSearchTerm(event.target.value)
     }
 
+    useEffect(() => {
+        service
+            .getAll()
+            .then(persons => {
+                setPersons(persons)
+                setSearchResult(persons)
+            })
+    }, [])
 
     useEffect(() => {
         const result = persons.filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -70,6 +81,23 @@ const App = () => {
         setSearchResult(result)
 
     }, [searchTerm]);
+
+    const remove = (name, id) => {
+        return () => {
+            if (window.confirm(`Sure you want to delete ${name}?`)) {
+                service
+                    .remove(id)
+                    .then(() => {
+                        setPersons(persons.filter(n => n.id !== id))
+                        setSearchResult(persons.filter(n => n.id !== id))
+                        setNewName("")
+                        setNewNumber("")
+                    })
+            }
+        }
+
+
+    }
 
     return (
         <div className="main">
@@ -86,7 +114,7 @@ const App = () => {
                 type="submit"
             />
             <h2>Numbers</h2>
-            <PersonInfoList searchResult={searchResult} />
+            <PersonInfoList searchResult={searchResult} deleteRecord={remove}/>
 
         </div>
     )

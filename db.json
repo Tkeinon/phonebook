@@ -1,0 +1,24 @@
+{
+  "persons": [
+    {
+      "name": "Tommi Keinonen",
+      "number": "05013451",
+      "id": 1
+    },
+    {
+      "name": "Matias Berglund",
+      "number": "13257891",
+      "id": 2
+    },
+    {
+      "name": "Juhana Kallio",
+      "number": "16543",
+      "id": 3
+    },
+    {
+      "name": "Jukka Palmu",
+      "number": "987654321",
+      "id": 5
+    }
+  ]
+}
