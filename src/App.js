@@ -4,6 +4,7 @@ import AddPerson from "./components/AddPerson";
 import Filter from "./components/Filter";
 import PersonInfoList from "./components/PersonInfoList";
 import service from "./services/persons"
+import Notification from "./components/Notification";
 
 const App = () => {
     const [persons, setPersons] = useState([])
@@ -11,6 +12,7 @@ const App = () => {
     const [newNumber, setNewNumber] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const [searchResult, setSearchResult] = useState([])
+    const [msg, setMsg] = useState(null)
 
     const addName = (event) => {
         event.preventDefault();
@@ -34,8 +36,11 @@ const App = () => {
                         setSearchResult(
                             persons.map(n => (n.name === newName ? updatePerson : n))
                         )
+
+                        setMsg(`${personObject.name} phone number updated`)
                     })
-                    .catch(() => {
+                    .catch((error) => {
+                        setMsg("Update failed", error)
                     });
             }
         } else {
@@ -47,8 +52,13 @@ const App = () => {
                     setNewName("")
                     setNewNumber("")
                 })
-
+            setMsg(`User ${newName} successfully added to database`)
         }
+        setNewName('')
+        setNewNumber('')
+        setTimeout(() => {
+            setMsg(null)
+        }, 4000)
     }
 
     const handleNameChange = (event) => {
@@ -92,17 +102,22 @@ const App = () => {
                         setSearchResult(persons.filter(n => n.id !== id))
                         setNewName("")
                         setNewNumber("")
+                        setMsg(`User ${name} deleted from database`)
                     })
+                    .catch(error => {
+                        setMsg(`User ${name} is already deleted`)
+                    });
+                setTimeout(() => {
+                    setMsg(null)
+                }, 4000)
             }
         }
-
-
     }
 
     return (
         <div className="main">
             <h2>Phonebook</h2>
-
+            <Notification message={msg} />
             <Filter value={searchTerm} handleSearch={handleSearch}/>
             <h1>Add new </h1>
             <AddPerson
