@@ -14,6 +14,27 @@ const App = () => {
     const [searchResult, setSearchResult] = useState([])
     const [msg, setMsg] = useState(null)
 
+    const handleSearch = (event) => {
+        event.preventDefault();
+        console.log(event.target.value)
+        setSearchTerm(event.target.value)
+    }
+
+    useEffect(() => {
+        service
+            .getAll()
+            .then(persons => {
+                setPersons(persons)
+                setSearchResult(persons)
+            })
+    }, [])
+
+    useEffect(() => {
+        const result = persons.filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        setSearchResult(result)
+
+    }, [searchTerm, persons]);
+
     const addName = (event) => {
         event.preventDefault();
 
@@ -49,10 +70,14 @@ const App = () => {
                 .then(returnedPerson => {
                     setPersons(persons.concat(returnedPerson))
                     setSearchResult(searchResult.concat(returnedPerson))
+                    setMsg(`User ${newName} successfully added to database`)
                     setNewName("")
                     setNewNumber("")
                 })
-            setMsg(`User ${newName} successfully added to database`)
+                .catch(error => {
+                    setMsg(`${error.response.data.error}`)
+                })
+
         }
         setNewName('')
         setNewNumber('')
@@ -69,28 +94,6 @@ const App = () => {
     const handleNumberChange = (event) => {
         setNewNumber(event.target.value)
     }
-
-    const handleSearch = (event) => {
-        event.preventDefault();
-        console.log(event.target.value)
-        setSearchTerm(event.target.value)
-    }
-
-    useEffect(() => {
-        service
-            .getAll()
-            .then(persons => {
-                setPersons(persons)
-                setSearchResult(persons)
-            })
-    }, [])
-
-    useEffect(() => {
-        const result = persons.filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        console.log(searchResult)
-        setSearchResult(result)
-
-    }, [searchTerm]);
 
     const remove = (name, id) => {
         return () => {
